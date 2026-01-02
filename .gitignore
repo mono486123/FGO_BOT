@@ -1,0 +1,15 @@
+# 忽略虛擬環境
+venv/
+
+# 忽略 ADB 工具與 OCR 執行檔 (建議另外下載，不入庫)
+platform-tools-latest-windows/
+pytesseract/
+
+# 忽略執行中產生的暫存圖片
+capture_screen/screen.png
+capture_screen/templates/*.png
+
+# 忽略 Python 快取
+__pycache__/
+*.pyc
+capture_screen/__pycache__/

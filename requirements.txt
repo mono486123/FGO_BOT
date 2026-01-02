@@ -1,0 +1,6 @@
+opencv-python==4.10.0.84
+numpy==1.26.4
+pytesseract==0.3.10
+Pillow==10.3.0
+
+#ADB（外部工具，不在 pip）、Tesseract（OCR）

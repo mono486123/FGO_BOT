@@ -1,0 +1,20 @@
+#虛擬環境位置:"D:\fgo_bot\venv"
+
+
+解決 VS Code 永遠選錯 Python 的問題
+
+我們昨天就看到 VS Code Terminal 的 PATH 是壞掉的。
+
+要 VS Code 永遠用對 Python：
+
+③ 從 PowerShell 重新啟動 VS Code（超有效）
+
+在你 venv 啟動的狀態下：
+
+cd/d "D:\fgo_bot"
+.\venv\Scripts\activate
+code .
+
+
+這樣 VS Code 會吃「當前終端機的 venv」。
+

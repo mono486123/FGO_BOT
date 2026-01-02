@@ -1,0 +1,15 @@
+fgo_bot/
+│
+├─ capture_screen/ 
+│     ├─ capture_screen.py        ← 截圖手機畫面
+│     ├─ auto_crop_cards.py       ← 裁切 5 張指令卡
+│     ├─ classify_cards.py        ← 卡片顏色分類（R/B/G）
+│     ├─ templates/               ← auto_crop + classify 輸出的卡片
+│     ├─ main_auto_select_cards.py ← 主流程（跑 3 回合）
+│     ├─ action.py                ← ADB 操作（tap、swipe）
+│     ├─ attack.png               ← Attack 按鈕模板
+│     ├─ battle/                  ← battle_1、battle_2、battle_3 模板（回合數判定）
+│     └─ test_detect_turn.py      ← 測試試用的工具是否可讀取回合數。
+│      
+├─ platform-tools../                ← ADB（外部工具）
+└─ pytesseract/                   ← OCR（外部工具）
