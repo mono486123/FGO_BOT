@@ -1,109 +1,132 @@
-這是一個非常完整的 FGO 自動化腳本開發專案。根據你提供的檔案結構與程式碼，我為你整理了一份 **README.md**。
-
-這份文件能幫助你記錄目前的開發進度、環境需求以及各個模組的功能，方便日後維護或上傳 GitHub。
+這是一份為你整合後的 **FGO Auto Bot 綜合開發指南 (`README.md`)**。我已經將你提供的檔案結構、ADB 連結步驟、以及虛擬環境（venv）的疑難排解全部混合在一起，讓你以後只需看這份文件就能完成所有操作。
 
 ---
 
-# FGO Auto Bot (Python + ADB)
+# 🤖 FGO Auto Bot 全自動永動機開發指南
 
-這是一個基於 Python 與 ADB (Android Debug Bridge) 開發的《Fate/Grand Order》自動化腳本，旨在實現基本的 **3T (3-Turn)** 自動通關。
+本專案是一個基於 **Python + ADB** 開發的《Fate/Grand Order》自動化腳本，旨在實現從「搜尋好友」到「3T 戰鬥」再到「吃果實續戰」的完整自動化循環。
 
-## 📂 檔案結構
+## 📂 專案檔案結構
 
-* **`main_auto_select_cards.py`**: 主程式，控制整體戰鬥流程、回合偵測與卡片選擇。
-* **`capture_screen.py`**: 透過 ADB 擷取手機畫面並儲存為 `screen.png`。
-* **`auto_crop_cards.py`**: 從 `screen.png` 中裁切出五張指令卡。
-* **`classify_cards.py`**: 使用 HSV 顏色空間將卡片分類為紅 (Buster)、藍 (Arts)、綠 (Quick)。
-* **`action.py`**: 封裝 ADB 指令，提供點擊 (tap) 與滑動 (swipe) 功能。
-* **`test_detect_turn.py`**: 回合數偵測測試工具。
-* **`templates/`**: 存放裁切後與分類後的指令卡暫存圖。
-* **`battle/`**: 存放用於比對回合數 (1/3, 2/3, 3/3) 的模板圖片。
-
----
-
-## 🛠️ 環境準備
-
-1. **Python 3.x**: 建議使用虛擬環境 (`venv`)。
-2. **ADB 工具**: 需放置於 `D:\fgo_bot\platform-tools-latest-windows`。
-3. **Tesseract OCR**: 需安裝於 `D:\fgo_bot\pytesseract\tesseract.exe` 以進行文字辨識。
-4. **必要套件**:
-```bash
-pip install opencv-python numpy pytesseract
-
-```
-
-
-
----
-
-## 🚀 核心功能說明
-
-### 1. 回合偵測 (OCR + Template Matching)
-
-系統會先擷取畫面右上角的「Battle x/3」區域。
-
-* **OCR**: 使用 `pytesseract` 識別數字。
-* **Fallback**: 若 OCR 失敗，會使用 `cv2.matchTemplate` 與 `battle/` 資料夾內的圖片進行比對。
-
-### 2. 卡片分類與選擇
-
-* **顏色辨識**: 透過 HSV 濾波計算每個色域的像素點，判定卡片顏色。
-* **排序邏輯**: 預設優先選擇順序：**紅色 (Buster) > 藍色 (Arts) > 綠色 (Quick)**。
-
-### 3. 戰鬥腳本 (`TURN_SCRIPT` & `NP_SCRIPT`)
-
-在 `main_auto_select_cards.py` 中可以自定義每一回合要釋放的技能與寶具：
-
-* **技能**: 透過座標點擊從者技能。
-* **寶具**: 在選卡階段點擊寶具卡位置。
-
----
-
-## 📝 使用方式
-
-1. 開啟手機/模擬器的 **ADB 偵錯**。
-2. 修改 `main_auto_select_cards.py` 中的 `DEVICE_IP` 為你的裝置位址。
-3. 在戰鬥開始介面執行：
-```bash
-python main_auto_select_cards.py
-
-```
-
-
-
----
-
-## ⚠️ 注意事項
-
-* **座標適配**: 目前座標基於固定解析度，若螢幕比例不同需重新調整 `CARD_CENTERS` 與 `SKILL_POS`。
-* **路徑固定**: 目前程式碼內含大量硬編碼路徑 (Hardcoded paths)，搬移資料夾時需同步更新。
-
----
-
-**需要我幫你將這些路徑重構成「相對路徑」，讓你在不同電腦上跑起來更方便嗎？**
-
-
-
+* **`main.py`**: 核心指揮官，負責串接選支援、戰鬥與結算流程。
+* **`modules/support_selector.py`**: 搜尋特定玩家與從者，進入關卡。
+* **`modules/battle_manager.py`**: 核心戰鬥模組，包含 Wave 偵測、技能/寶具施放與指令卡顏色優先級辨識。
+* **`modules/battle_end_handler.py`**: 處理戰鬥後的羈絆、經驗值跳過，以及連續出擊與自動吃果實邏輯。
+* **`capture_screen.py`**: 透過 ADB `exec-out` 快速擷取手機畫面，這是目前最快的純 ADB 截圖方式。
+* **`action.py`**: 封裝 ADB 指令，提供穩定的 `tap`（點擊）與 `swipe`（滑動）功能。
+* **`logs/`**: 存放執行中的截圖 (`screen.png`)、裁切後的卡片與 Debug 預覽圖。
 ```
 D:\fgo_bot\
-├── main.py                     # 【入口】一鍵啟動永動機（串接所有流程）
-├── config.py                   # 【設定】存放 IP、所有路徑與座標設定
-├── capture_screen.py           # 【工具】底層截圖與 ADB 基礎通訊
+├── .gitignore              # Git 忽略清單 (排除 venv, __pycache__ 等)
+├── README.md               # 專案說明文件 (包含連線步驟與操作說明)
+├── config.py               # 全域設定檔 (管理 DEVICE_IP 與各項路徑參數)
+├── main.py                 # 永動機指揮官 (串接所有自動化流程的主程式)
+├── requirements.txt        # Python 依賴套件清單 (opencv, numpy, pytesseract)
 │
-├── modules/                    # 【模組】存放各階段的邏輯
-│   ├── support_selector.py     # 原 test_detect_support.py (選好友)
-│   ├── battle_manager.py       # 原 battle.py + action.py (放技能/點卡)
-│   ├── battle_end_handler.py   # 原 battle_end_handler.py (結算/吃果實)
-│   ├── card_processor.py       # 原 auto_crop_cards.py + classify_cards.py
-│   └── adb_commands.py         # 統一管理所有 adb -s 指令
+├── assets\                 # 【靜態資源】存放比對用的原始模板圖
+│   ├── results\            # 結算畫面模板 (羈絆、經驗值、連續出擊按鈕)
+│   └── support\            # 選支援模板 (玩家名、從者名)
 │
-├── assets/                     # 【素材】存放所有比對用的圖片
-│   ├── support/                # 好友模板 (player_name, servant_name)
-│   ├── battle/                 # 戰鬥模板 (attack.png)
-│   └── results/                # 結算模板 (bond_title, exp_title, next_btn, cont_yes, ap_window)
+├── logs\                   # 【運作紀錄與暫存】存放執行中的截圖與 Debug 圖
+│   ├── battle\             # 戰鬥回合數字模板 (battle_1_black.png 等)
+│   ├── temp_cards\         # 裁切後的五張指令卡暫存區
+│   ├── attack.png          # Attack 按鈕特徵圖
+│   ├── screen.png          # 目前手機畫面即時截圖
+│   └── debug_view.png      # 指令卡裁切範圍預覽圖
 │
-└── logs/                       # 【輸出】存放產生的截圖與 Debug 圖
-    ├── screen.png              # 運作中的即時截圖
-    ├── debug_view.png          # 裁切預覽圖
-    └── temp_cards/             # 存放裁切出來的五張卡片
+├── modules\                # 【功能模組】各階段的自動化邏輯
+│   ├── battle_end_handler.py   # 結算與 AP 恢復邏輯
+│   ├── battle_manager.py       # 3T 戰鬥邏輯 (含 Wave 偵測與選卡)
+│   ├── support_selector.py     # 好友支援選取邏輯
+│   │
+│   └── card_processor\      # 【卡片處理單元】底層工具
+│       ├── action.py           # ADB 點擊與滑動指令封裝
+│       └── capture_screen.py   # ADB 高速截圖工具
+│
+├── venv\                   # Python 虛擬環境 (存放相關 Library)
+├── platform-tools-latest-windows\  # ADB 工具包
+└── __pycache__\            # Python 編譯暫存檔 (自動產生)
+
+
 ```
+---
+
+## 🛠️ 環境配置需求
+
+1. **Python 3.x**: 必須在虛擬環境執行。
+2. **虛擬環境路徑**: `D:\fgo_bot\venv`。
+3. **ADB 工具**: 位於 `D:\fgo_bot\platform-tools-latest-windows`。
+4. **Tesseract OCR**: 位於 `D:\fgo_bot\pytesseract\tesseract.exe`。
+5. **必要套件**: `pip install opencv-python numpy pytesseract`。
+
+---
+
+## 📡 無線偵錯 (WiFi ADB) 連結步驟
+
+為了確保連線穩定，請務必按照以下順序執行。若連線失敗，請先「關閉無線偵測」再重新啟用。
+
+### 第一步：清理與重啟服務
+
+有時候舊的連線資訊會導致衝突，請先執行：
+
+```powershell
+adb kill-server
+adb start-server
+
+```
+
+### 第二步：配對裝置 (Pairing)
+
+當手機顯示「配對碼」時，輸入以下指令：
+
+```powershell
+adb pair 10.191.176.213:[配對Port]
+# 隨後輸入手機顯示的 6 位配對碼
+
+```
+
+### 第三步：正式連線 (Connect)
+
+配對成功後，使用手機主頁面顯示的「連線 Port」進行連線：
+
+```powershell
+adb connect 10.191.176.213:41335
+
+```
+
+---
+
+## 💻 虛擬環境與 VS Code 修復
+
+若遇到 VS Code 選錯 Python 或抓不到 venv 的問題，請透過終端機啟動：
+
+1. 開啟 PowerShell 並切換至專案目錄：`cd "D:\fgo_bot"`。
+2. 啟動 venv：`.\venv\Scripts\activate`。
+3. **透過此環境啟動 VS Code**：輸入 `code .` 讓 VS Code 直接繼承當前的環境路徑。
+
+---
+
+## 📋 ADB 指令速查表 (除錯用)
+
+| 功能 | 指令 | 說明 |
+| --- | --- | --- |
+| **列出裝置** | `adb devices` | 確認是否出現 `device` 字樣 |
+| **指定裝置點擊** | `adb -s [ID] shell input tap x y` | 多裝置環境下防止指令發錯對象 |
+| **手動滑動** | `adb shell input swipe x1 y1 x2 y2 ms` | 測試下滑尋找支援的長度 |
+| **快速截圖** | `adb exec-out screencap -p > test.png` | 檢查目前的畫面內容 |
+| **解析度檢查** | `adb shell wm size` | 確保遊戲解析度與腳本座標邏輯相符 |
+
+---
+
+## ⚠️ 開發注意事項
+
+* **解析度適配**: 座標基於特定解析度（2400x1080），若更換設備需調整 `CARD_CENTERS`。
+* **路徑硬編碼**: 專案內含有多處 `D:\fgo_bot\` 路徑，搬移資料夾時務必同步檢查。
+* **穩定性**: 如果發現截圖變慢，請確認是否透過 `capture_screen.py` 的 `exec-out` 資料流處理。
+
+---
+
+**下一步建議：**
+我已經將所有開發細節整理完畢。現在你可以放心地進行 Git 提交。當你準備好進行第一次「永動機」實測時，我可以直接為你撰寫 **`config.py`**，將所有 Port 和路徑變數徹底分離出來。
+
+需要我現在幫你寫那份 **`config.py`** 嗎？
