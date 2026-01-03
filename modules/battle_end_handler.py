@@ -7,7 +7,7 @@ import os
 # ====================================================
 # 1. 環境配置
 # ====================================================
-DEVICE_IP = "10.191.176.213:41335"
+DEVICE_IP = ""
 TEMP_DIR = r"D:\fgo_bot\assets\results"
 SCREEN_PATH = os.path.join(TEMP_DIR, "screen_end.png")
 

@@ -6,7 +6,7 @@ import time
 # ====================================================
 # 1. 核心配置
 # ====================================================
-DEVICE_IP = "10.191.176.213:41335"
+DEVICE_IP = ""
 PLAYER_TEMP = r"D:\fgo_bot\assets\support\player_name.png"
 SERVANT_TEMP = r"D:\fgo_bot\assets\support\servant_name.png"
 SCREEN_PATH = r"D:\fgo_bot\logs\screen.png"

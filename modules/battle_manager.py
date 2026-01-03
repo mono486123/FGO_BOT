@@ -4,18 +4,44 @@ import time
 import subprocess
 import numpy as np
 import glob
-from card_processor.action import tap  # 引入 ADB 點擊功能
 import card_processor.capture_screen as cs  # 引入截圖功能模組
 
 # ====================================================
 # 1. 環境與路徑設定
 # ====================================================
-DEVICE_IP = "10.191.176.213:41335"
+DEVICE_IP = ""
 IMG_PATH = r"D:\fgo_bot\logs\screen.png"
 OUT_DIR = r"D:\fgo_bot\logs\temp_cards" # 裁切卡片存放處
 ATTACK_TEMPLATE = r"D:\fgo_bot\logs\attack.png"
 BATTLE_DIR = r"D:\fgo_bot\logs\battle"
 DEBUG_PATH = r"D:\fgo_bot\logs\debug_view.png"
+
+
+
+# ====================================================
+# 1-2. ADB 內建動作函式 (原 action.py 內容)
+# ====================================================
+
+def tap(x, y, delay=0.15):
+    """執行點擊，強制指定當前的 DEVICE_IP"""
+    subprocess.run(["adb", "-s", DEVICE_IP, "shell", "input", "tap", str(x), str(y)])
+    time.sleep(delay)
+
+def swipe(x1, y1, x2, y2, dur=150, delay=0.2):
+    """執行滑動，強制指定當前的 DEVICE_IP"""
+    subprocess.run([
+        "adb", "-s", DEVICE_IP, "shell", "input", "swipe",
+        str(x1), str(y1), str(x2), str(y2), str(dur)
+    ])
+    time.sleep(delay)
+
+def capture_screen(path):
+    """使用指定 IP 截圖"""
+    cs.capture_screen(path, device_id=DEVICE_IP)
+
+
+
+
 
 # ====================================================
 # 2. 座標與排程設定
