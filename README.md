@@ -75,3 +75,52 @@ python main.py
 3. **OCR 偵測**: 若回合數偵測不準，請調整 `detect_battle_turn` 內的二值化閾值或 ROI 區域。
 
 ---
+
+
+
+## 🚧 Flutter 版本開發進度與瓶頸說明
+
+專案目錄中雖包含 `fgo_flutter` 資料夾，但目前處於 **「暫停開發 / 實驗性」** 階段，主因在於 Android 系統對背景程式的嚴格限制：
+
+### 1. Android 背景執行限制
+
+* **無法持續執行**：Android 系統會主動殺掉長時間在背景運作且耗用 CPU 進行影像辨識的程式。
+* **顯示衝突**：FGO 遊戲本身佔用全螢幕，Flutter 程式切換到背景後，往往無法獲取所需的 UI 繪製權限或持續進行邏輯運算。
+
+### 2. 螢幕擷取與權限挑戰
+
+* 
+**安全性限制**：原生 Android 程式（非透過 ADB）要獲取螢幕畫面，必須通過 `MediaProjection` 權限請求，且通常會在系統列顯示黃色警告，甚至被遊戲偵測為外掛 。
+
+
+* 
+**無障礙服務 (Accessibility Service)**：雖然已初步配置 `FgoAccessibilityService.kt`，但要實現穩定的自動點擊與畫面比對，仍存在極大的技術門檻，目前尚無法達到 Python + ADB 的穩定度 。
+
+
+
+### 3. 現階段建議
+
+* 
+**請優先使用 Python 版本**：Python 版本透過 PC 端的 ADB 隧道進行操作，完全避開了 Android 手機內部的背景限制，是目前最穩定的自動化方案 。
+
+
+
+---
+
+### 同步更新 `.gitignore`
+
+為了讓您的 Git 紀錄保持乾淨，不再被那些無法使用的 Flutter 暫存檔干擾，請務必將以下內容加入您的 `.gitignore`：
+
+```text
+# 忽略 Flutter 相關編譯產物
+fgo_flutter/.dart_tool/
+fgo_flutter/build/
+fgo_flutter/.packages
+fgo_flutter/.flutter-plugins*
+fgo_flutter/pubspec.lock
+
+# 忽略 Android/iOS 產生的本地設定
+fgo_flutter/android/local.properties
+fgo_flutter/ios/Flutter/Generated.xcconfig
+
+```
