@@ -1,15 +1,58 @@
-# 忽略虛擬環境
+# ====================================================
+# 1. Python 虛擬環境與快取
+# ====================================================
 venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# 忽略 ADB 工具與 OCR 執行檔 (建議另外下載，不入庫)
-platform-tools-latest-windows/
+# ====================================================
+# 2. ADB 與 OCR 外部工具 (建議手動管理，不入庫)
+# ====================================================
+platform-tools*/
 pytesseract/
 
-# 忽略執行中產生的暫存圖片
+# ====================================================
+# 3. FGO Bot 執行過程產生的暫存與紀錄 (關鍵修正)
+# ====================================================
+# 忽略所有截圖與暫存卡片
+logs/*.png
+logs/temp_cards/*.png
 capture_screen/screen.png
 capture_screen/templates/*.png
 
-# 忽略 Python 快取
-__pycache__/
-*.pyc
-capture_screen/__pycache__/
+# 如果你想保留特定的模板圖 (例如 attack.png)，可以使用 ! 排除
+!logs/attack.png
+
+# ====================================================
+# 4. Flutter 專案忽略清單 (fgo_flutter)
+# ====================================================
+fgo_flutter/
+fgo_flutter/.dart_tool/
+fgo_flutter/.flutter-plugins
+fgo_flutter/.flutter-plugins-dependencies
+fgo_flutter/.packages
+fgo_flutter/build/
+fgo_flutter/pubspec.lock
+
+
+# Android 專屬忽略
+fgo_flutter/android/**/generated/
+fgo_flutter/android/gradle/
+fgo_flutter/android/local.properties
+fgo_flutter/android/**/build.gradle.kts.old
+
+# iOS/macOS 專屬忽略
+fgo_flutter/ios/Flutter/Generated.xcconfig
+fgo_flutter/ios/Flutter/flutter_export_environment.sh
+fgo_flutter/macos/Flutter/Generated.xcconfig
+
+# ====================================================
+# 5. 其他系統檔案
+# ====================================================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

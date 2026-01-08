@@ -3,7 +3,7 @@ import sys
 import os
 
 # 🔥 統一管理區：只要改這裡就好
-DEVICE_IP = "10.191.176.213:38345" 
+DEVICE_IP = "10.178.123.213:41361" 
 
 # 確保路徑正確
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
