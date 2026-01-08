@@ -107,20 +107,3 @@ python main.py
 
 ---
 
-### 同步更新 `.gitignore`
-
-為了讓您的 Git 紀錄保持乾淨，不再被那些無法使用的 Flutter 暫存檔干擾，請務必將以下內容加入您的 `.gitignore`：
-
-```text
-# 忽略 Flutter 相關編譯產物
-fgo_flutter/.dart_tool/
-fgo_flutter/build/
-fgo_flutter/.packages
-fgo_flutter/.flutter-plugins*
-fgo_flutter/pubspec.lock
-
-# 忽略 Android/iOS 產生的本地設定
-fgo_flutter/android/local.properties
-fgo_flutter/ios/Flutter/Generated.xcconfig
-
-```
