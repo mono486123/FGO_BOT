@@ -19,10 +19,12 @@ pytesseract/
 # ====================================================
 # 忽略所有截圖與暫存卡片
 logs/*.png
+logs/screen.png
 logs/temp_cards/*.png
 capture_screen/screen.png
 capture_screen/templates/*.png
-
+assets/results/screen_end.png
+logs/temp_cards/*.png
 # 如果你想保留特定的模板圖 (例如 attack.png)，可以使用 ! 排除
 !logs/attack.png
 

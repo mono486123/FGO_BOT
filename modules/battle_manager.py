@@ -186,52 +186,123 @@ def auto_cards_with_np(turn):
         tap(*CARD_CENTERS[idx-1])
         time.sleep(0.2)
 
+
+
+
+# 在 modules/battle_manager.py 的操作流程區新增一個純選卡函式
+def auto_cards_only():
+    """不放寶具，純粹根據顏色優先級選 3 張卡（用於補刀回合）"""
+    capture_screen(IMG_PATH)
+    if internal_auto_crop(): 
+        internal_process_all_cards() 
+    
+    seq = decide_order()
+    for idx in seq[:3]: # 直接選前三張最優卡
+        tap(*CARD_CENTERS[idx-1])
+        time.sleep(0.2)
+
+# 修改後的主流程
 def main():
-    print("🔥 整合版 3T 戰鬥管理員啟動")
+    print("🔥 強化穩定版 3T (Wave 3 補位支援) 啟動")
     os.system(f"adb connect {DEVICE_IP}")
     last_turn = 0
+    sub_turn = 1 
     
-    # 初始偵測
+    # 1. 初始偵測 Wave
     while last_turn == 0:
         capture_screen(IMG_PATH)
         last_turn = detect_battle_turn() or 0
         time.sleep(1)
 
     while True:
-        print(f"\n===== 🎯 Wave {last_turn} 開始 =====")
+        # --- A. 等待階段：等待 Attack 按鈕或結尾出現 ---
+        attack_pos = None
+        print(f"\n===== 🎯 Wave {last_turn} (第 {sub_turn} 次攻擊) 準備中 =====")
         
-        # 等待 Attack 按鈕 (由 wait_attack 提供)
         while True:
             capture_screen(IMG_PATH)
             screen = cv2.imread(IMG_PATH)
+            if screen is None: continue
+
+            # 檢查 Attack 按鈕
             templ = cv2.imread(ATTACK_TEMPLATE)
             res = cv2.matchTemplate(screen, templ, cv2.TM_CCOEFF_NORMED)
             _, max_val, _, max_loc = cv2.minMaxLoc(res)
+            
             if max_val > 0.75:
                 attack_pos = (max_loc[0] + templ.shape[1]//2, max_loc[1] + templ.shape[0]//2)
-                break
-            time.sleep(1)
+                print("⚔️ Attack 按鈕已就緒")
+                break # 發現按鈕，進入攻擊流程
+            
+            # 檢查是否進入結尾 (僅在 Wave 3 檢查)
+            if last_turn == 3:
+                bond_tmpl = cv2.imread(r"D:\fgo_bot\assets\results\bond_title.png")
+                if bond_tmpl is not None:
+                    res_end = cv2.matchTemplate(screen, bond_tmpl, cv2.TM_CCOEFF_NORMED)
+                    if np.max(res_end) > 0.85:
+                        print("🎉 偵測到結尾畫面，戰鬥正式完成！")
+                        return # 直接結束此函式，回到 main.py 的外層循環
+            
+            print("⏳ 動畫播放中，等待 UI 恢復...")
+            time.sleep(2)
 
-        # 執行技能
-        for (serv, skill) in TURN_SCRIPT.get(last_turn, []):
-            cast_skill(serv, skill)
+        # --- B. 執行階段：放技能與選卡 ---
+        print(f"👉 執行 Wave {last_turn} (第 {sub_turn} 次攻擊)")
+        
+        # 只有在每個 Wave 的第一次攻擊才放技能
+        if sub_turn == 1:
+            for (serv, skill) in TURN_SCRIPT.get(last_turn, []):
+                cast_skill(serv, skill)
 
-        tap(*attack_pos) # 進入選卡
-        time.sleep(1.5)
-        auto_cards_with_np(last_turn) # 選卡
+        # 進入選卡畫面
+        tap(*attack_pos)
+        time.sleep(2)
+        
+        # 選卡 (sub_turn 1 用寶具，其餘補刀)
+        if sub_turn == 1:
+            auto_cards_with_np(last_turn)
+        else:
+            print("🗡️ 補刀模式：不使用寶具")
+            auto_cards_only()
 
-        if last_turn == 3:
-            print("🎉 戰鬥完成！")
-            break
+        # --- C. 轉換階段：判斷下一次攻擊的狀態 ---
+        print("⏳ 攻擊結束，等待轉場動畫...")
+        time.sleep(10) # 補位怪出現通常需要較長時間，給足 buffer
 
-        print("⏳ 等待 Wave 更新…")
         while True:
             capture_screen(IMG_PATH)
-            new_turn = detect_battle_turn()
-            if new_turn and new_turn != last_turn:
-                last_turn = new_turn
-                break
+            new_wave = detect_battle_turn()
+            
+            # 檢查 Attack 按鈕
+            screen = cv2.imread(IMG_PATH)
+            res_atk = cv2.matchTemplate(screen, cv2.imread(ATTACK_TEMPLATE), cv2.TM_CCOEFF_NORMED)
+            attack_visible = np.max(res_atk) > 0.75
+
+            # 1. 如果 Wave 變了 -> 重置 sub_turn，進入新 Wave
+            if new_wave and new_wave != last_turn:
+                print(f"➡️ 前進至 Wave {new_wave}")
+                last_turn = new_wave
+                sub_turn = 1
+                break # 跳出「轉換判定」，回到最上方等待 Attack
+                
+            # 2. 如果 Wave 沒變，但 Attack 按鈕出來了 -> 補位
+            if attack_visible:
+                print("🔄 偵測到補位敵人，準備補刀")
+                sub_turn = 2
+                break # 跳出「轉換判定」，回到最上方等待 Attack
+
+            # 3. 如果是 Wave 3 且沒看到 Attack，且出現結尾圖案
+            if last_turn == 3:
+                bond_tmpl = cv2.imread(r"D:\fgo_bot\assets\results\bond_title.png")
+                if bond_tmpl is not None:
+                    res_end = cv2.matchTemplate(screen, bond_tmpl, cv2.TM_CCOEFF_NORMED)
+                    if np.max(res_end) > 0.85:
+                        print("🏁 偵測到結尾標誌，結束戰鬥迴圈")
+                        return
+
+            print("⏳ 等待伺服器回應或動畫結束...")
             time.sleep(2)
+
 
 if __name__ == "__main__":
     main()
